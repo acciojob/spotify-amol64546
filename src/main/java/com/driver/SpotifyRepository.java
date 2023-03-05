@@ -208,11 +208,28 @@ public class SpotifyRepository {
 //        public HashMap<Playlist, List<User>> playlistListenerMap;
 //        public HashMap<User, Playlist> creatorPlaylistMap;
         // making curr user as listener if he is not already
-        List<User> tempList= playlistListenerMap.get(currPlaylist);
+        List<User> tempList = new ArrayList<>();
+        if(playlistListenerMap.containsKey(currPlaylist)){
+            tempList = playlistListenerMap.get(currPlaylist);
+        }
         if(!tempList.contains(currUser)){
             tempList.add(currUser);
         }
         playlistListenerMap.put(currPlaylist,tempList);
+
+        if(!creatorPlaylistMap.get(currUser).equals(currPlaylist)){
+            creatorPlaylistMap.put(currUser,currPlaylist);
+        }
+
+        List<Playlist> temp2PlayList = new ArrayList<>();
+        if(userPlaylistMap.containsKey(currUser)){
+            temp2PlayList = userPlaylistMap.get(currUser);
+        }
+        if(!temp2PlayList.contains(currPlaylist)){
+            temp2PlayList.add(currPlaylist);
+        }
+        userPlaylistMap.put(currUser,temp2PlayList);
+
         return currPlaylist;
     }
 
@@ -233,6 +250,9 @@ public class SpotifyRepository {
 //        public HashMap<Song, List<User>> songLikeMap;
         List<User> likesList = songLikeMap.getOrDefault(currSong,new ArrayList<>());
         if(!likesList.contains(currUser)){
+            likesList.add(currUser);
+            songLikeMap.put(currSong,likesList);
+
             currSong.setLikes(currSong.getLikes()+1);
 //            public HashMap<Artist, List<Album>> artistAlbumMap;
 //            public HashMap<Album, List<Song>> albumSongMap;
@@ -253,12 +273,11 @@ public class SpotifyRepository {
                     break;
                 }
             }
-            if(currArtist!=null) currArtist.setLikes(currArtist.getLikes()+1);
+            currArtist.setLikes(currArtist.getLikes()+1);
 
-            likesList.add(currUser);
         }
 
-        songLikeMap.put(currSong,likesList);
+
 
         return currSong;
     }
