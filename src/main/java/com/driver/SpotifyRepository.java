@@ -96,11 +96,9 @@ public class SpotifyRepository {
         songs.add(gaana);
 
         // putting in album - song map
-        List<Song> tempSongsList;
+        List<Song> tempSongsList = new ArrayList<>();
         if(albumSongMap.containsKey(albumKey)){
             tempSongsList = albumSongMap.get(albumKey);
-        }else{
-            tempSongsList = new ArrayList<>();
         }
         tempSongsList.add(gaana);
         albumSongMap.put(albumKey,tempSongsList);
@@ -192,9 +190,6 @@ public class SpotifyRepository {
 
 
     public Playlist findPlaylist(String mobile, String playlistTitle) throws Exception {
-        // check for user existance
-        User currUser = getUser(mobile);
-        if(currUser==null) throw new Exception("User does not exist");
 
         // check for playlist existance
         Playlist currPlaylist = null;
@@ -206,16 +201,18 @@ public class SpotifyRepository {
         }
         if(currPlaylist==null) throw new Exception("Playlist does not exist");
 
+        // check for user existance
+        User currUser = getUser(mobile);
+        if(currUser==null) throw new Exception("User does not exist");
+
 //        public HashMap<Playlist, List<User>> playlistListenerMap;
 //        public HashMap<User, Playlist> creatorPlaylistMap;
         // making curr user as listener if he is not already
-        if(!creatorPlaylistMap.containsKey(currUser)){
-              List<User> tempList= playlistListenerMap.get(currPlaylist);
-              if(!tempList.contains(currUser)){
-                  tempList.add(currUser);
-              }
-              playlistListenerMap.put(currPlaylist,tempList);
-          }
+        List<User> tempList= playlistListenerMap.get(currPlaylist);
+        if(!tempList.contains(currUser)){
+            tempList.add(currUser);
+        }
+        playlistListenerMap.put(currPlaylist,tempList);
         return currPlaylist;
     }
 
@@ -245,6 +242,7 @@ public class SpotifyRepository {
             for(Album a: albumSongMap.keySet()){
                 if(albumSongMap.get(a).contains(currSong)){
                     currAlbum = a;
+                    break;
                 }
             }
             // album -> artist
@@ -252,6 +250,7 @@ public class SpotifyRepository {
             for(Artist a: artistAlbumMap.keySet()){
                 if(artistAlbumMap.get(a).contains(currAlbum)){
                     currArtist = a;
+                    break;
                 }
             }
             if(currArtist!=null) currArtist.setLikes(currArtist.getLikes()+1);
