@@ -60,16 +60,15 @@ public class SpotifyRepository {
         Artist artistKey = createArtist(artistName);
 
         // creating album
+        for(Album album : albums){
+            if(album.getTitle().equals(title))
+                return  album;
+        }
         Album tempAlbum = new Album(title);
         albums.add(tempAlbum);
 
         // put in artist-album map
-        List<Album> tempAlbumList;
-        if(artistAlbumMap.containsKey(artistKey)){
-            tempAlbumList = artistAlbumMap.get(artistKey);
-        }else{
-            tempAlbumList = new ArrayList<>();
-        }
+        List<Album> tempAlbumList = artistAlbumMap.getOrDefault(artistKey,new ArrayList<>());
         tempAlbumList.add(tempAlbum);
         artistAlbumMap.put(artistKey,tempAlbumList);
 
@@ -93,10 +92,7 @@ public class SpotifyRepository {
         songs.add(gaana);
 
         // putting in album - song map
-        List<Song> tempSongsList = new ArrayList<>();
-        if(albumSongMap.containsKey(albumKey)){
-            tempSongsList = albumSongMap.get(albumKey);
-        }
+        List<Song> tempSongsList = albumSongMap.getOrDefault(albumKey,new ArrayList<>());
         tempSongsList.add(gaana);
         albumSongMap.put(albumKey,tempSongsList);
 
@@ -200,46 +196,42 @@ public class SpotifyRepository {
 
     public Playlist findPlaylist(String mobile, String playlistTitle) throws Exception {
 
+        // check for user existance
+        User currUser = getUser(mobile);
+        if(currUser==null) throw new Exception("User does not exist");
+
         // check for playlist existance
         Playlist currPlaylist = null;
         for(Playlist p: playlists){
-            if(playlistTitle.equals(p.getTitle())){
+            if(p.getTitle().equals(playlistTitle)){
                 currPlaylist = p;
                 break;
             }
         }
         if(currPlaylist==null) throw new Exception("Playlist does not exist");
 
-        // check for user existance
-        User currUser = getUser(mobile);
-        if(currUser==null) throw new Exception("User does not exist");
 
-//        public HashMap<Playlist, List<User>> playlistListenerMap;
-//        public HashMap<User, Playlist> creatorPlaylistMap;
-        // making curr user as listener if he is not already
-        List<User> tempList = new ArrayList<>();
-        if(playlistListenerMap.containsKey(currPlaylist)){
-            tempList = playlistListenerMap.get(currPlaylist);
-        }
+
+        // listener playlist
+        List<User> tempList = playlistListenerMap.getOrDefault(currPlaylist,new ArrayList<>());
         if(!tempList.contains(currUser)){
             tempList.add(currUser);
-        }
-        playlistListenerMap.put(currPlaylist,tempList);
-
-
-        if(!creatorPlaylistMap.get(currUser).equals(currPlaylist)){
-            creatorPlaylistMap.put(currUser,currPlaylist);
+            playlistListenerMap.put(currPlaylist,tempList);
         }
 
 
-        List<Playlist> temp2PlayList = new ArrayList<>();
-        if(userPlaylistMap.containsKey(currUser)){
-            temp2PlayList = userPlaylistMap.get(currUser);
-        }
+        // creator playlist
+//        if(!creatorPlaylistMap.get(currUser).equals(currPlaylist)){
+//            creatorPlaylistMap.put(currUser,currPlaylist);
+//        }
+
+        // user playlist
+        List<Playlist> temp2PlayList =  userPlaylistMap.getOrDefault(currUser,new ArrayList<>());
         if(!temp2PlayList.contains(currPlaylist)){
             temp2PlayList.add(currPlaylist);
+            userPlaylistMap.put(currUser,temp2PlayList);
         }
-        userPlaylistMap.put(currUser,temp2PlayList);
+
 
         return currPlaylist;
     }
@@ -263,10 +255,8 @@ public class SpotifyRepository {
         if(!likesList.contains(currUser)){
             likesList.add(currUser);
             songLikeMap.put(currSong,likesList);
-
             currSong.setLikes(currSong.getLikes()+1);
-//            public HashMap<Artist, List<Album>> artistAlbumMap;
-//            public HashMap<Album, List<Song>> albumSongMap;
+
 
             // song -> album
             Album currAlbum = null;
@@ -284,12 +274,9 @@ public class SpotifyRepository {
                     break;
                 }
             }
+            assert currArtist != null;
             currArtist.setLikes(currArtist.getLikes()+1);
-
         }
-
-
-
         return currSong;
     }
 
